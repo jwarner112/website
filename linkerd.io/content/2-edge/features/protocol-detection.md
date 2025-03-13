@@ -100,6 +100,10 @@ This annotation *must* be set in two places:
 traffic), or on enclosing namespace, in which it will apply to all workloads in
 the namespace.
 
+You can also set the `appProtocol` field on a Service port to `"linkerd.io/opaque"`
+to mark a single port as opaque. This is part of broader protocol declaration that
+is available on service ports, see below for more details.
+
 {{< note >}}
 Multiple ports can be provided as a comma-delimited string. The values you
 provide will _replace_, not augment, the default list of opaque ports.
@@ -111,6 +115,28 @@ If you are using [authorization policies](../server-policy/), the `Server`'s
 instead of a Service annotation. Regardless, we suggest annotating the
 Service object for clarity.
 {{< /note >}}
+
+## Declaring a Service port's protocol
+
+When you're getting started with Linkerd, automatic protocol detection is an
+important way to get as much visibility into your traffic as possible. But as
+you get into more advanced use cases, especially when configuring traffic
+policies, it's more important for protocol handling to be predictable. And if
+you're going through the bother of configuring policies, you probably don't
+mind telling us a little about the application protocol!
+
+To support this, Linkerd will look at the `appProtocol` field on the ports in a
+Service to determine what protocol to use when communicating with that Service port.
+
+| `appProtocol`     | Protocol   | Notes |
+|-------------------|------------|-------|
+| linkerd.io/opaque | opaque     |       |
+| linkerd.io/tcp    | opaque     |       |
+| http              | HTTP/1     | The source proxy may upgrade the connection to the destination proxy to HTTP/2, though the destination workload will still see HTTP/1 |
+| kubernetes.io/h2c | HTTP/2     |       |
+
+If `appProtocol` is set to any other value, Linkerd will continue to do automatic
+protocol detection.
 
 ## Marking ports as skip ports
 
